@@ -152,7 +152,19 @@ class SectionBuilder:
     def main(self):
         self.changeSectionNumbering()
         self.makeSection()
-        self.doc.generate_pdf(f"TitleOfDocument13", clean_tex=False)
+        self.doc.generate_pdf(f"TitleOfDocument13", clean_tex=True)
+
+
+
+#------------------------------------------------
+# NOTE TO USER: The code below is the code that does all of the work. Where the code says "SectionBuilder",
+# the first term after the opening parenthetical is the name of the file in which the data are stored. Here,
+# the data are stored in a file called "financials", which I have updloaded to the project site as well for
+# reference. To use in your own application, you will need to change the word "financials" to the name of
+# your own Excel file. You will also need to change the digit(s) that follow so that they correspond to the
+# worsheet in which the related results are provided. The third block of text, in quotes, is the name of the
+# section.
+#------------------------------------------------
 
 if __name__ == '__main__':
     resultsOfOperationsSection = SectionBuilder("financials", 2, "Results of Operations")
