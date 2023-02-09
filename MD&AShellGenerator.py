@@ -1,9 +1,7 @@
 import re
 from openpyxl import load_workbook
-from datetime import date, datetime
 from pylatex import Document, Section, Subsection, Subsubsection, Tabular, Command, Tabularx, MiniPage, PageStyle, Head, Foot, UnsafeCommand
-from pylatex.utils import bold, NoEscape
-import time
+
 
 
 class SectionBuilder:
@@ -18,28 +16,23 @@ class SectionBuilder:
 
 
         # This is to change the default section numbering to the format that is typical for legal documents
-    def changeSectionNumbering(self, doc):
+    def changeSectionNumbering(self):
         geometry_options = {"margin" : "1.00in"}
         self.doc = Document(geometry_options=geometry_options)
         self.doc.preamble.append(NoEscape(r"""\usepackage{titlesec}"""))
         # for subsections
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\thesection}{\arabic{section}}"""))
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\thesubsection}{(\alph{subsection})}"""))
-        self.doc.preamble.append(NoEscape(r"""\titleformat{\subsection}[block]{\normalfont\bfseries\filcenter}{\thesubsection}{0.5em}{\itshape}
-    """))
-        self.doc.preamble.append(NoEscape(r"""\titleformat{\section}[block]{\bfseries\filcenter}{\thesection}{0.5em}{}
-    """))
+        self.doc.preamble.append(NoEscape(r"""\titleformat{\subsection}[block]{\normalfont\bfseries\filcenter}{\thesubsection}{0.5em}{\itshape}"""))
+        self.doc.preamble.append(NoEscape(r"""\titleformat{\section}[block]{\bfseries\filcenter}{\thesection}{0.5em}{}"""))
         # for subsubsections
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\thesubsubsection}{(\arabic{subsubsection})}"""))
-        self.doc.preamble.append(NoEscape(r"""\titleformat{\subsubsection}[block]{\normalfont\bfseries\}{\indent\thesubsubsection\indent}{0.5em}{}
-    """))
+        self.doc.preamble.append(NoEscape(r"""\titleformat{\subsubsection}[block]{\normalfont\bfseries\}{\indent\thesubsubsection\indent}{0.5em}{}"""))
         # for paragraphs
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\theparagraph}{(\roman{paragraph})}"""))
-        self.doc.preamble.append(NoEscape(r"""\titleformat{\paragraph}[runin]{\normalfont\bfseries}{\indent\indent\theparagraph\indent}{0.5em}{}
-    """))
+        self.doc.preamble.append(NoEscape(r"""\titleformat{\paragraph}[runin]{\normalfont\bfseries}{\indent\indent\theparagraph\indent}{0.5em}{}"""))
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\thesubparagraph}{(\Alph{subparagraph})}"""))
-        self.doc.preamble.append(NoEscape(r"""\titleformat{\subparagraph}[runin]{\normalfont\bfseries}{\indent\indent\thesubparagraph\indent}{0.5em}{}
-    """))
+        self.doc.preamble.append(NoEscape(r"""\titleformat{\subparagraph}[runin]{\normalfont\bfseries}{\indent\indent\thesubparagraph\indent}{0.5em}{}"""))
         self.doc.preamble.append(NoEscape(r"""\renewcommand{\labelenumi}{(\arabic{enumi})\indent}"""))
         self.doc.preamble.append(NoEscape(r"""\setcounter{secnumdepth}{5}"""))
 
@@ -67,17 +60,14 @@ class SectionBuilder:
     def createSection(self, nameOfSection, textToAppend):
         with self.doc.create(Section(f'{nameOfSection}', numbering=False)):
             self.doc.append(f'{textToAppend}')
-            self.doc.append(NoEscape(r"""\\"""))
 
     def createSubsection(self, nameOfSubsection, textToAppend):
         with self.doc.create(Subsection(f'{nameOfSubsection}', label=False, numbering=False)):
             self.doc.append(f'{textToAppend}')
-            self.doc.append(NoEscape(r"""\\"""))
 
     def createSubsubsection(self, nameOfSubsubsection, textToAppend):
         with self.doc.create(Subsubsection(f'{nameOfSubsubsection}', numbering=False)):
             self.doc.append(f'{textToAppend}')
-            self.doc.append(NoEscape(r"""\\"""))
 
     def createParagraph(nameOfParagraph, textToAppend):
         with self.doc.create(Paragraph(f"{nameOfParagraph}")):
@@ -101,7 +91,7 @@ class SectionBuilder:
 
     def makeHeading(self):
         print('-' * 100)
-        self.createSection(f"{self.sectionHeading}", "")
+        self.doc.create(Section(f"{self.sectionHeading}", numbering=False))
         print('-' * 100)
 
     def makeTitle(self, row):
@@ -113,7 +103,7 @@ class SectionBuilder:
             self.makeTitle(row=row)
             self.createSubsubsection(f"Twelve Months Ended {self.ws.cell(row=2, column=2+i).value}", f"For the twelve-month period ended {self.ws.cell(row=2, column=2+i).value}, the Company had {int(self.ws.cell(row=row, column=2+i).value):,} million in {self.ws.cell(row=row, column=1).value.lower()}, which represents {self.increaseOrDecrease(row=row, col=2+i)} of {int(self.ws.cell(row=row, column=2+i).value) - self.ws.cell(row=row, column=2+i+1).value:,} relative to the twelve-month period ended {self.ws.cell(row=2, column=3+i).value} and a difference of {round(float(self.ws.cell(row=row, column=2+i).value)/float(self.ws.cell(row=row, column=3+i).value),2)} percent in year-over-year terms. The change in {self.ws.cell(row=row, column=1).value.lower()} for the twelve months ended {self.ws.cell(row=2, column=2).value} relative to the comparable figure for the twelve-months ended {self.ws.cell(row=2, column=3).value} was primarily due to [INCLUDE DESCRIPTION AND AMOUNTS OF SIGNIFICANT DRIVERS REPRESENTING THE SIGNIFICANT MAJORITY OF THE CHANGE IN THE AGGREGATE THAT WERE POSITIVE/NEGATIVE (AS APPLICABLE)], partially offset by [DESCRIBE ANY OFFSETTING FACTORS AND AMOUNTS REPRESENTING THE SIGNIFICANT MAJORITY IN THE AGGREGATE OF THE FACTORS THAT WERE OFFSET].")
 
-            self.createSubsubsection(f"Twelve Months Ended {self.ws.cell(row=3, column=2+i).value}", f"For the twelve-month period ended {self.ws.cell(row=2, column=3).value}, the Company had {int(self.ws.cell(row=row, column=3).value):,} million in {self.ws.cell(row=row, column=1).value.lower()}, which represents {self.increaseOrDecrease(row=row, col=3)} of {int(self.ws.cell(row=row, column=3).value) - self.ws.cell(row=row, column=3+1).value:,} relative to the twelve-month period ended {self.ws.cell(row=2, column=4).value} and a difference of {round(float(self.ws.cell(row=row, column=3).value)/float(self.ws.cell(row=row, column=4).value),2)} percent in year-over-year terms. The change in {self.ws.cell(row=row, column=1).value.lower()} for the twelve months ended {self.ws.cell(row=2, column=3).value} relative to the comparable figure for the twelve-months ended {self.ws.cell(row=2, column=4).value} was primarily due to [INCLUDE DESCRIPTION AND AMOUNTS OF SIGNIFICANT DRIVERS REPRESENTING THE SIGNIFICANT MAJORITY OF THE CHANGE IN THE AGGREGATE THAT WERE POSITIVE/NEGATIVE (AS APPLICABLE)], partially offset by [DESCRIBE ANY OFFSETTING FACTORS AND AMOUNTS REPRESENTING THE SIGNIFICANT MAJORITY IN THE AGGREGATE OF THE FACTORS THAT WERE OFFSET].")
+            self.createSubsubsection(f"Twelve Months Ended {self.ws.cell(row=2, column=3).value}", f"For the twelve-month period ended {self.ws.cell(row=2, column=3).value}, the Company had {int(self.ws.cell(row=row, column=3).value):,} million in {self.ws.cell(row=row, column=1).value.lower()}, which represents {self.increaseOrDecrease(row=row, col=3)} of {int(self.ws.cell(row=row, column=3).value) - self.ws.cell(row=row, column=3+1).value:,} relative to the twelve-month period ended {self.ws.cell(row=2, column=4).value} and a difference of {round(float(self.ws.cell(row=row, column=3).value)/float(self.ws.cell(row=row, column=4).value),2)} percent in year-over-year terms. The change in {self.ws.cell(row=row, column=1).value.lower()} for the twelve months ended {self.ws.cell(row=2, column=3).value} relative to the comparable figure for the twelve-months ended {self.ws.cell(row=2, column=4).value} was primarily due to [INCLUDE DESCRIPTION AND AMOUNTS OF SIGNIFICANT DRIVERS REPRESENTING THE SIGNIFICANT MAJORITY OF THE CHANGE IN THE AGGREGATE THAT WERE POSITIVE/NEGATIVE (AS APPLICABLE)], partially offset by [DESCRIBE ANY OFFSETTING FACTORS AND AMOUNTS REPRESENTING THE SIGNIFICANT MAJORITY IN THE AGGREGATE OF THE FACTORS THAT WERE OFFSET].")
 
             self.createSubsubsection(f"Twelve-months ended {self.ws.cell(row=2, column=4).value}", f"For the twelve-month period ended {self.ws.cell(row=2, column=4).value}, the Company had {int(self.ws.cell(row=row, column=4).value):,} million in {self.ws.cell(row=row, column=1).value.lower()}. The change in {self.ws.cell(row=row, column=1).value.lower()} for the twelve months ended {self.ws.cell(row=2, column=2+i).value} relative to the comparable figure for the prior period was primarily due to [INCLUDE DESCRIPTION AND AMOUNTS OF SIGNIFICANT DRIVERS REPRESENTING THE SIGNIFICANT MAJORITY OF THE CHANGE IN THE AGGREGATE THAT WERE POSITIVE/NEGATIVE (AS APPLICABLE)], partially offset by [DESCRIBE ANY OFFSETTING FACTORS AND AMOUNTS REPRESENTING THE SIGNIFICANT MAJORITY IN THE AGGREGATE OF THE FACTORS THAT WERE OFFSET].")
 
@@ -130,7 +120,10 @@ class SectionBuilder:
                 str_de = str_en.decode()
                 self.ws.cell(row=i, column=2).value = str_de
                 self.makeTitle(row=i)
-                self.doc.createSubsection(f"{self.ws.cell(row=i, column=1).value}", f"{self.ws.cell(row=i, column=2).value}")
+                self.createSubsection(f"{self.ws.cell(row=i, column=1).value}", f"{self.ws.cell(row=i, column=2).value}")
+                findTable = re.compile(r"The following table shows")
+                # for k in findTable.finditer:
+                #     print(k)
 
     def makeSection(self):
         self.makeHeading()
@@ -147,16 +140,11 @@ class SectionBuilder:
 
     def makePlaceholder(self):
         self.makeHeading()
-        doc.self.append("[To follow.]")
-
-    def main(self):
-        self.changeSectionNumbering()
-        self.makeSection()
-        self.doc.generate_pdf(f"TitleOfDocument13", clean_tex=True)
+        self.doc.append("[To follow.]")
 
 
 
-#------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
 # NOTE TO USER: The code below is the code that does all of the work. Where the code says "SectionBuilder",
 # the first term after the opening parenthetical is the name of the file in which the data are stored. Here,
 # the data are stored in a file called "financials", which I have updloaded to the project site as well for
@@ -164,20 +152,17 @@ class SectionBuilder:
 # your own Excel file. You will also need to change the digit(s) that follow so that they correspond to the
 # worsheet in which the related results are provided. The third block of text, in quotes, is the name of the
 # section.
-#------------------------------------------------
+#------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    resultsOfOperationsSection = SectionBuilder("financials", 2, "Results of Operations")
-    resultsOfOperationsSection.main()
-    keyFactorsAffectingPerformance = SectionBuilder("financials", 2, "Key Factors Affecting Our Performance")
-    keyFactorsAffectingPerformance.makePlaceholder()
-    liquidityAndCapitalResourcesSection = SectionBuilder("financials", 2, "Liquidity and Capital Resoources")
-    liquidityAndCapitalResourcesSection.makePlaceholder()
+    resultsOfOperationSection = SectionBuilder("financials", 2, "Results of Operation")
+    resultsOfOperationSection.makeSection()
+    resultsOfOperationSection.doc.generate_pdf(f"Results of Operation", clean_tex=True)
+
     cashFlowSection = SectionBuilder("financials", 7, "Cash Flows")
-    cashFlowSection.main()
-    exposureToMarketRisks = SectionBuilder("financials", 2, "Exposure to Market Risks")
-    exposureToMarketRisks.makePlaceholder()
-    contractualObligations = SectionBuilder("financials", 2, "Contractual Obligations")
-    contractualObligations.makePlaceholder()
+    cashFlowSection.makeSection()
+    cashFlowSection.doc.generate_pdf("Cash Flows", clean_tex=True)
+
     criticalAccountingPolicies = SectionBuilder("financials", 8, "Summary of Critical Accounting Policies")
     criticalAccountingPolicies.makeSummaryOfCriticalAccountingPolicies(worksheetRangeFrom=8, worksheetRangeTo=31)
+    criticalAccountingPolicies.doc.generate_pdf(f"Summary of Critical Accounting Policies", clean_tex=True)
