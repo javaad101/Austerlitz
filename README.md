@@ -16,9 +16,15 @@ Be sure to save the script to the same file as the file to which you have downlo
 ## Step 3. Open Terminal. 
 
 ## Step 4. Navigate to the project file in terminal. 
-For example, if you have saved the project files to your desktop, navigate to the desktop by typing, without quotes, "cd Desktop".
+For example, if you have saved the project files to your desktop, navigate to the desktop by typing `cd Desktop`.
 
-## Step 5. Install all necessary Python packages.
-To do this, open terminal and type the following commands:
+## Step 5. Install the necessary Python packages.
+To do this, type the following commands in terminal:
 
 > - `pip install pylatex`
+> - `pip install openpyxl`
+
+## Step 6. Run the script. 
+In terminal, navigate to where you have saved the project files, per step 4 above. Then type:
+
+> - `python3.10 MDandAShellGenerator.py`
